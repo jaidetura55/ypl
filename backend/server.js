@@ -1708,7 +1708,7 @@ if (process.env.NODE_ENV === 'production' && fs.existsSync(distDir)) {
     });
 } else {
     const vite = await createViteServer({
-        server: { middlewareMode: true },
+        server: { middlewareMode: true, allowedHosts: true },
         appType: 'spa',
     });
     app.use(vite.middlewares);

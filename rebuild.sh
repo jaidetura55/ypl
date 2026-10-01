@@ -1,23 +1,19 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
-# YoungPapi Live Rebuild Script
-# This script performs a clean installation of dependencies and builds the project.
-
+# KawduLive Quick Rebuild & Restart Script
 echo "------------------------------------------"
-echo "🚀 Starting Rebuild Process..."
+echo "🚀 Starting KawduLive Rebuild Process..."
 echo "------------------------------------------"
 
-# Optional: Clear node_modules for a completely fresh start
-# echo "📦 Cleaning node_modules..."
-# rm -rf node_modules
-# rm package-lock.json
-
-echo "📥 Installing dependencies..."
-npm install
-
-echo "🛠️  Building the application..."
+echo "🛠️  Building Vite production bundle..."
 npm run build
 
+if command -v pm2 &> /dev/null; then
+  echo "🔄 Reloading PM2 platform daemon..."
+  pm2 restart kawdulive || pm2 start "npx tsx backend/server.js" --name "kawdulive"
+fi
+
 echo "------------------------------------------"
-echo "✅ Rebuild Complete!"
+echo "✅ Rebuild & Restart Complete!"
+echo "Visit: https://kawdulive.qzz.io"
 echo "------------------------------------------"
