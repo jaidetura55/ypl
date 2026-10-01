@@ -1,0 +1,115 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>YoungPapi Live</title>
+    <meta name="description" content="A next-generation live streaming platform featuring real-time video, AI-powered moderation, and an interactive AI stream companion.">
+    <meta property="og:title" content="YoungPapi Live">
+    <meta property="og:description" content="A next-generation live streaming platform featuring real-time video, AI-powered moderation, and an interactive AI stream companion.">
+    <script>
+      // Basic global polyfill
+      window.global = window;
+
+      // Robust Emscripten / MediaPipe dataFileDownloads proxy protector
+      (function() {
+        var safeDownloads = {};
+        var safeProxy = new Proxy(safeDownloads, {
+          get: function(target, prop) {
+            if (!(prop in target) && typeof prop === 'string') {
+              target[prop] = { loaded: 0, total: 1 };
+            }
+            return target[prop];
+          },
+          set: function(target, prop, value) {
+            target[prop] = value;
+            return true;
+          }
+        });
+
+        // Initialize Module and createMediapipeSolutionsPackedAssets with the proxy
+        window.Module = window.Module || {};
+        window.Module.dataFileDownloads = safeProxy;
+
+        window.createMediapipeSolutionsPackedAssets = window.createMediapipeSolutionsPackedAssets || {};
+        window.createMediapipeSolutionsPackedAssets.dataFileDownloads = safeProxy;
+
+        // Catch both global errors and unhandled rejections
+        var suppressPattern = /face_mesh_solution_packed_assets|@mediapipe\/face_mesh/;
+        
+        var originalOnError = window.onerror;
+        window.onerror = function(msg, url, line, col, error) {
+          var text = (msg || '') + ' ' + ((error && error.message) || '');
+          if (suppressPattern.test(text)) {
+            console.warn('Suppressed MediaPipe asset load warning:', text);
+            return true;
+          }
+          if (typeof originalOnError === 'function') {
+            return originalOnError.apply(this, arguments);
+          }
+          return false;
+        };
+
+        window.addEventListener('error', function(e) {
+          var msg = (e && (e.message || (e.error && e.error.message))) || '';
+          if (suppressPattern.test(msg)) {
+            if (e.preventDefault) e.preventDefault();
+            if (e.stopImmediatePropagation) e.stopImmediatePropagation();
+            console.warn('Suppressed external MediaPipe asset loading error:', msg);
+            return true;
+          }
+        }, true);
+
+        window.addEventListener('unhandledrejection', function(e) {
+          var reason = (e && e.reason) || '';
+          var msg = (typeof reason === 'object' ? reason.message : String(reason)) || '';
+          if (suppressPattern.test(msg)) {
+            if (e.preventDefault) e.preventDefault();
+            console.warn('Suppressed unhandled MediaPipe rejection:', msg);
+          }
+        });
+      })();
+    </script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/webrtc-adapter/8.2.3/adapter.min.js"></script>
+    
+    <!-- AR Dependencies: MediaPipe Face Mesh (Pinned stable version) -->
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh@0.4.1633559619/face_mesh.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils@0.4.1633559619/camera_utils.js" crossorigin="anonymous"></script>
+    
+    <link rel="stylesheet" href="css/styles.css">
+<script type="importmap">
+{
+  "imports": {
+    "react": "https://esm.sh/react@^19.2.4",
+    "react-dom/": "https://esm.sh/react-dom@^19.2.4/",
+    "react/": "https://esm.sh/react@^19.2.4/",
+    "@google/genai": "https://esm.sh/@google/genai@^1.41.0",
+    "vite": "https://esm.sh/vite@^7.3.1",
+    "@vitejs/plugin-react": "https://esm.sh/@vitejs/plugin-react@^5.1.4",
+    "url": "https://esm.sh/url@^0.11.4",
+    "multer": "https://esm.sh/multer@^2.0.2",
+    "http": "https://esm.sh/http@^0.0.1-security",
+    "path": "https://esm.sh/path@^0.12.7",
+    "ws": "https://esm.sh/ws@^8.19.0",
+    "express": "https://esm.sh/express@^5.2.1",
+    "mysql2/": "https://esm.sh/mysql2@^3.17.0/",
+    "cors": "https://esm.sh/cors@^2.8.6",
+    "fs": "https://esm.sh/fs@^0.0.1-security",
+    "child_process": "https://esm.sh/child_process@^1.0.2",
+    "https": "https://esm.sh/https@^1.0.0",
+    "os": "https://esm.sh/os@^0.1.2"
+  }
+}
+</script>
+<link rel="stylesheet" href="/index.css">
+</head>
+<body class="bg-slate-50 overflow-hidden">
+    <div id="root"></div>
+    <script type="module" src="index.tsx"></script>
+<script type="module" src="/index.tsx"></script>
+</body>
+</html>

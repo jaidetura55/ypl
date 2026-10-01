@@ -1,0 +1,11 @@
+{
+  "name": "YoungPapi Live",
+  "description": "A next-generation live streaming platform featuring real-time video, AI-powered moderation, and an interactive AI stream companion.",
+  "requestFramePermissions": [
+    "camera",
+    "microphone"
+  ],
+  "capabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

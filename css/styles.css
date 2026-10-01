@@ -1,0 +1,91 @@
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+
+html, body, #root {
+    height: 100%;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    position: fixed; /* Prevents elastic scrolling on iOS */
+    background-color: #f8fafc;
+}
+
+body {
+    font-family: 'Inter', sans-serif;
+    color: #1e293b;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.glass {
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.bottom-nav-glass {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(12px);
+    border-top: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.stream-gradient {
+    background: linear-gradient(to top, rgba(0, 0, 0, 0.6) 0%, transparent 100%);
+}
+
+::-webkit-scrollbar {
+    width: 0px;
+    background: transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+    height: 0px;
+}
+
+@keyframes fade-in-out {
+    0% { opacity: 0; transform: scale(0.85); }
+    15% { opacity: 1; transform: scale(1); }
+    85% { opacity: 1; transform: scale(1); }
+    100% { opacity: 0; transform: scale(1.1); }
+}
+
+.animate-fade-in-out {
+    animation: fade-in-out 5s ease-in-out forwards;
+}
+
+@keyframes fade-in-up {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade-in-up {
+    animation: fade-in-up 0.3s ease-out forwards;
+}
+
+@keyframes bounce-short {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-4px); }
+}
+
+.animate-bounce-short {
+    animation: bounce-short 0.5s ease-in-out;
+}
+
+@keyframes sparkle {
+    0%, 100% { opacity: 0; transform: scale(0); }
+    50% { opacity: 1; transform: scale(1); }
+}
+
+.sparkle-effect {
+    position: absolute;
+    width: 4px;
+    height: 4px;
+    background: white;
+    border-radius: 50%;
+    animation: sparkle 1s infinite;
+}
+
+.mask-image-linear-gradient {
+    mask-image: linear-gradient(to top, black 80%, transparent 100%);
+}
