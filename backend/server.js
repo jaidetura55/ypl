@@ -1696,24 +1696,6 @@ app.delete('/api/admin/moderation/logs', (req, res) => {
     res.json({ success: true, message: 'Moderation activity logs cleared', logs: [] });
 });
 
-// --- STATIC ASSETS & VITE MIDDLEWARE ---
-const distDir = path.join(rootDir, 'dist');
-if (process.env.NODE_ENV === 'production' && fs.existsSync(distDir)) {
-    app.use(express.static(distDir));
-    app.get('*', (req, res, next) => {
-        if (req.path.startsWith('/api') || req.path.startsWith('/userphot') || req.path.startsWith('/admin') || req.path.startsWith('/peerjs')) {
-            return next();
-        }
-        res.sendFile(path.join(distDir, 'index.html'));
-    });
-} else {
-    const vite = await createViteServer({
-        server: { middlewareMode: true, allowedHosts: true },
-        appType: 'spa',
-    });
-    app.use(vite.middlewares);
-}
-
 // --- SERVER INITIALIZATION ---
 const httpServer = http.createServer(app);
 let httpsServer = null;
@@ -1755,7 +1737,7 @@ if (keyPath && certPath) {
     }
 }
 
-// WebSocket server with manual upgrade routing
+// Dedicated WebSocket server for real-time live rooms, gifts, and chat
 wss = new WebSocketServer({ noServer: true });
 
 wss.on('connection', (ws) => {
@@ -1771,15 +1753,20 @@ wss.on('connection', (ws) => {
     });
 });
 
-// Initialize PeerServer as middleware attached to httpServer
+// Dedicated WebSocket server for WebRTC PeerJS signaling (noServer: true prevents hijacking all upgrades)
+const peerWss = new WebSocketServer({ noServer: true });
 const expressPeerServer = ExpressPeerServer(httpServer, {
-    path: '/'
+    path: '/',
+    createWebSocketServer: () => peerWss
 });
 app.use('/peerjs', expressPeerServer);
 
 const handleUpgrade = (req, socket, head) => {
-    if (req.url && req.url.startsWith('/peerjs')) {
-        // ExpressPeerServer handles peerjs upgrades
+    const url = req.url || '';
+    if (url.startsWith('/peerjs')) {
+        peerWss.handleUpgrade(req, socket, head, (client) => {
+            peerWss.emit('connection', client, req);
+        });
         return;
     }
     wss.handleUpgrade(req, socket, head, (ws) => {
@@ -1789,13 +1776,30 @@ const handleUpgrade = (req, socket, head) => {
 
 httpServer.on('upgrade', handleUpgrade);
 if (httpsServer) {
-    httpsServer.on('upgrade', (req, socket, head) => {
-        if (req.url && req.url.startsWith('/peerjs')) {
-            httpServer.emit('upgrade', req, socket, head);
-            return;
+    httpsServer.on('upgrade', handleUpgrade);
+}
+
+// --- STATIC ASSETS & VITE MIDDLEWARE (Mounted after all API & PeerJS routes) ---
+const distDir = path.join(rootDir, 'dist');
+const hasBuiltDist = fs.existsSync(path.join(distDir, 'index.html'));
+const isProduction = process.env.NODE_ENV === 'production' || (hasBuiltDist && process.env.NODE_ENV !== 'development');
+
+if (isProduction && hasBuiltDist) {
+    console.log('📦 Serving production bundle from dist/');
+    app.use(express.static(distDir));
+    app.get('*', (req, res, next) => {
+        if (req.path.startsWith('/api') || req.path.startsWith('/userphot') || req.path.startsWith('/admin') || req.path.startsWith('/peerjs')) {
+            return next();
         }
-        handleUpgrade(req, socket, head);
+        res.sendFile(path.join(distDir, 'index.html'));
     });
+} else {
+    console.log('⚡ Starting Vite development middleware mode...');
+    const vite = await createViteServer({
+        server: { middlewareMode: true, allowedHosts: true },
+        appType: 'spa',
+    });
+    app.use(vite.middlewares);
 }
 
 // Unified TCP server that accepts both HTTP (Nginx reverse-proxy) and HTTPS

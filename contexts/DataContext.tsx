@@ -398,7 +398,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const connectWs = () => {
       try {
         const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-        const wsUrl = `${protocol}//${window.location.host}`;
+        const wsUrl = `${protocol}//${window.location.host}/ws`;
         ws = new WebSocket(wsUrl);
 
         ws.onmessage = (event) => {
@@ -504,7 +504,14 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (reconnectTimer) clearTimeout(reconnectTimer);
       if (ws) {
         ws.onclose = null;
-        ws.close();
+        ws.onerror = null;
+        if (ws.readyState === WebSocket.OPEN) {
+          ws.close();
+        } else if (ws.readyState === WebSocket.CONNECTING) {
+          ws.onopen = () => {
+            try { ws?.close(); } catch (e) {}
+          };
+        }
       }
     };
   }, []);
